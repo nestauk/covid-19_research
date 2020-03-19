@@ -5,9 +5,11 @@ An analysis of the CORD-19 dataset (a repository of papers about coronavirus res
 
 ## Setup
 
-Run `python cord19/data/get_cord19.py` to collect all zip files from [https://pages.semanticscholar.org/coronavirus-research](the Semantic Scholar page).
+Collect all zip files from [https://pages.semanticscholar.org/coronavirus-research](Semantic Scholar) using:
 
-They are stored in `data/raw`.
+`python cord19/data/get_cord19.py`
+
+Files are stored in `data/raw`.
 
 --------
 
