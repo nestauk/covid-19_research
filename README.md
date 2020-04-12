@@ -1,7 +1,10 @@
-cord19
+Covid-19 research
 ==============================
 
-An analysis of the CORD-19 dataset (a repository of papers about coronavirus research)
+A repository with code to analyse R&D activities related to Covid-19 including:
+
+* The cord19 dataset of scientific publications about Covid 19
+* Open source software development activity in GitHub
 
 --------
 
