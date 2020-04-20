@@ -94,3 +94,6 @@ target/
 
 # Mypy cache
 .mypy_cache/
+
+#Google big query credentials
+big_query_creds.json
