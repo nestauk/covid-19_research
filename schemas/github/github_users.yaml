@@ -1,31 +1,32 @@
-API: SQL
-endpoint: ghtorrentmysql1906.MySQL1906.users
-documentation: https://ghtorrent.org/gcloud.html
-description: Standardised information about users extracted from GitHub Torrent's GBQ's database (only available for users registered until May 2019)
+API: REST 
+endpoint: https://api.github.com/users
+documentation: https://developer.github.com/v3/users/
+description: User information
 Schema:
-  id:
+  name:
     type: str
-    description: user id
-  login:
-    type: str
-    description: user login
+    description: user name
   company:
     type: str
-    description: company where the user is employed
-  created_at:
-    type: timestamp
+    description: company that employs the user
+  location:
+    type: str
+    description: free text location
+  bio:
+    type: str
+    description: free text bio (generally role)
+  created:
+    type: date #dd/mm/YYYY
     description: date when the account was created
-  country_code:
+  repos_url:
     type: str
-    description: 2 digit iso country code 
-  city:
+    description: url for the repos owned by the user 
+  organizations_url:
     type: str
-    description: city
-  long:
-    type: str
-    description: longitude
-  lat:
-    type: str
-    description: latitude
-
-  
+    description: url for the organizations that the user is affiliated with
+  followers:
+    type: int 
+    description: number of followers that the user has
+  public_repos:
+    type: int
+    description: number of repos that the user owns
