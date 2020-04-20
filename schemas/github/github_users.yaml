@@ -1,0 +1,32 @@
+API: REST 
+endpoint: https://api.github.com/users
+documentation: https://developer.github.com/v3/users/
+description: User information
+Schema:
+  name:
+    type: str
+    description: user name
+  company:
+    type: str
+    description: company that employs the user
+  location:
+    type: str
+    description: free text location
+  bio:
+    type: str
+    description: free text bio (generally role)
+  created:
+    type: date #dd/mm/YYYY
+    description: date when the account was created
+  repos_url:
+    type: str
+    description: url for the repos owned by the user 
+  organizations_url:
+    type: str
+    description: url for the organizations that the user is affiliated with
+  followers:
+    type: int 
+    description: number of followers that the user has
+  public_repos:
+    type: int
+    description: number of repos that the user owns

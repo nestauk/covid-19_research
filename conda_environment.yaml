@@ -11,9 +11,14 @@ dependencies:
   - matplotlib
   - jupyter
   - ipython
+  - pandas-gbq
   # Put any conda dependencies here
 
   - pip:
+    - ratelim
+    - markdown
+    - bs4
+    - html2text
     # Put any pip dependencies here (and no conda ones anywhere below)
 
   # Tooling requirements (don't edit)

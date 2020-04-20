@@ -1,0 +1,14 @@
+API: REST 
+endpoint: https://api.github.com/search/repositories? and https://api.github.com/
+documentation: https://developer.github.com/v3/search/#constructing-a-search-query and https://developer.github.com/v3/
+description: lookup between repo ids and user logins
+Schema:
+  id:
+    type: int
+    description: github id for the repo
+  user:
+    type: str
+    description: api login for the user
+  is_owner:
+    type: boolean
+    description: whether the user is the owner of the repo or not
