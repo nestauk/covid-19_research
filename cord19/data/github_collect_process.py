@@ -3,6 +3,7 @@ from datetime import datetime
 import ratelim
 import re
 import time
+import os
 
 import pandas as pd
 import numpy as np
@@ -239,6 +240,7 @@ def parse_user_result(user_dict):
     '''
     result = {}
     
+    result['login'] = user_dict['login']
     result['name'] = user_dict['name']
     result['company'] = user_dict['company']
     result['location'] = user_dict['location']
@@ -250,3 +252,60 @@ def parse_user_result(user_dict):
     result['public_repos'] = user_dict['public_repos']
     
     return pd.Series(result)
+
+def create_user_df(user_lookup_df,data_path,recollect=False):
+    '''
+    Takes a repo - user lookup and collects user data.
+
+    Args:
+        user_lookup_df (pandas dataframe) is a dataframe with repos and users
+        recollect (boolean) if we want to check if we already collected the data
+        data_path (str) the directory with the data
+    '''
+    if recollect==False:
+        if os.path.exists(f"{data_path}/github_users.csv")==True:
+            #Get unique users
+            unique_users = [x for x in list(set(user_lookup_df['user'])) if pd.isnull(x)==False]
+            
+            #Get new users
+            #Previously collected data
+            user_df = pd.read_csv(f"{data_path}/github_users.csv")
+            
+            existing_users = set(user_df['login'])
+            new_users = [x for x in unique_users if x not in existing_users]
+            logger.info(f"{len(new_users)}")
+
+            #Collect the data
+            new_user_results = collect_user_data(new_users,creds)
+
+            #Parse the data and create a dataframe
+            new_user_df = pd.DataFrame([parse_user_result(x) for x in new_user_results ])
+
+            #Combine with previous users and save
+            user_df_2 = pd.concat([user_df,new_user_df])
+
+            return(user_df_2)
+        else:
+            unique_users = [x for x in list(set(user_lookup_df['user'])) if pd.isnull(x)==False]
+            logger.info(f"{len(unique_users)}")
+
+            #Collect the data
+            user_results = collect_user_data(unique_users,creds)
+
+            #Parse the data and create a dataframe
+            user_df = pd.DataFrame([parse_user_result(x) for x in user_results])
+
+            #Save the df
+            return(user_df)
+    else:
+        unique_users = [x for x in list(set(user_lookup_df['users'])) if pd.isnull(x)==False]
+        logger.info(f"{len(unique_users)}")
+
+        #Collect the data
+        user_results = collect_user_data(unique_users,creds)
+
+        #Parse the data and create a dataframe
+        user_df = pd.DataFrame([parse_user_result(x) for x in user_results])
+
+        #Save the df
+        return(user_df)

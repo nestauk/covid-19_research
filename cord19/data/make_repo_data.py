@@ -44,36 +44,44 @@ with open(f"{project_dir}/model_config.yaml",'r') as infile:
 cov_terms = mod['github_queries']
 logger.info(cov_terms)
 
-        
-#Return all results
-cov_results = [get_search_results(x,creds) for x in cov_terms]
 
-#Create list of unique repos
-all_repos = flatten_list([x['results'] for x in cov_results])
+def make_repos():
+    '''
+    Function to make the repos
+    '''
 
-ids = []
-unique_results = []
+    #Return all results
+    cov_results = [get_search_results(x,creds) for x in cov_terms]
 
-for item in all_repos:
-    if item['id'] in ids:
-        pass
-    else:
-        ids.append(item['id'])
-        
-        unique_results.append(item)
+    #Create list of unique repos
+    all_repos = flatten_list([x['results'] for x in cov_results])
 
-logger.info(f"{len(unique_results)}")
+    ids = []
+    unique_results = []
 
-#Create a lookuup between ids and sources
-cov_source_ids = [set([x['id'] for x in results['results']]) for results in cov_results]
-all_ids = [x['id'] for x in unique_results]
-id_source_lookup = {rid:[s for s,ids in zip(cov_terms,cov_source_ids) if rid in ids] for rid in all_ids}
+    for item in all_repos:
+        if item['id'] in ids:
+            pass
+        else:
+            ids.append(item['id'])
+            
+            unique_results.append(item)
 
-### Create repo df including contributor ids (we will use later)
-#Do the first pass
-first_pass_results = parse_all_repos(unique_results,creds,
-                                     id_source_lookup,
-                                     'github_repos_first_pass',
-                                     data_path)
+    logger.info(f"{len(unique_results)}")
 
-final_df.to_csv(f'{dat_path}/github_repos_first_pass.csv',index=False)
+    #Create a lookuup between ids and sources
+    cov_source_ids = [set([x['id'] for x in results['results']]) for results in cov_results]
+    all_ids = [x['id'] for x in unique_results]
+    id_source_lookup = {rid:[s for s,ids in zip(cov_terms,cov_source_ids) if rid in ids] for rid in all_ids}
+
+    ### Create repo df including contributor ids (we will use later)
+    #Do the first pass
+    first_pass_results = parse_all_repos(unique_results,creds,
+                                         id_source_lookup,
+                                         'github_repos_first_pass',
+                                         data_path)
+
+    final_df.to_csv(f'{data_path}/github_repos_first_pass.csv',index=False)
+
+if __name__=='__main__':
+    make_repos()
