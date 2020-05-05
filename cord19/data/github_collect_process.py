@@ -3,6 +3,7 @@ from datetime import datetime
 import ratelim
 import re
 import time
+import os
 
 import pandas as pd
 import numpy as np
@@ -18,7 +19,7 @@ logger = logging.getLogger()## Logging
 ## Paths
 # project directory e.g. `/home/user/GIT/nesta`
 project_dir = cord19.project_dir
-data_path = f'{project_dir}/data'
+#data_path = f'{project_dir}/data'
 
 
 def _parse_api_content(github_request):
@@ -34,10 +35,13 @@ def strip_gh_time(time_string):
     Strips a github timestamp
     
     '''
-    return(datetime.strptime(time_string.split('T')[0],"%Y-%m-%d"))
+    if type(time_string)==str:
+        return(datetime.strptime(time_string.split('T')[0],"%Y-%m-%d"))
+    else:
+        return np.nan
 
 #Functions
-@ratelim.patient(30,60)
+@ratelim.greedy(30,60)
 def query_github_api(url,my_auth,search=False,verbose=False):
     '''
     Query the GitHub API to get results taking into account pagination
@@ -149,7 +153,7 @@ def parse_repo(repo_json,my_auth,id_source_lookup,contrib_scrape=False):
             result['countributors_count'] = np.nan
             return pd.Series(result)
 
-def parse_all_repos(repo_list,my_auth,id_source_lookup,save_name,save_path=data_path,my_sleep=5):
+def parse_all_repos(repo_list,my_auth,id_source_lookup,save_name,save_path,my_sleep=5):
     '''
     This function parses a list of repos (including queries of contributors) and returns/saves a df with results
     
@@ -239,14 +243,95 @@ def parse_user_result(user_dict):
     '''
     result = {}
     
-    result['name'] = user_dict['name']
-    result['company'] = user_dict['company']
-    result['location'] = user_dict['location']
-    result['bio'] = user_dict['bio']
-    result['created'] = strip_gh_time(user_dict['created_at'])
-    result['repos_url'] = user_dict['repos_url']
-    result['organizations_url'] = user_dict['organizations_url']
-    result['followers'] = user_dict['followers']
-    result['public_repos'] = user_dict['public_repos']
+    result['login'] = robust_parse(user_dict,'login')
+    result['name'] = robust_parse(user_dict,'name')
+    result['company'] = robust_parse(user_dict,'company')
+    result['location'] = robust_parse(user_dict,'location')
+    result['bio'] = robust_parse(user_dict,'bio')
+    result['created'] = strip_gh_time(robust_parse(user_dict,'created_at'))
+    result['repos_url'] = robust_parse(user_dict,'repos_url')
+    result['organizations_url'] = robust_parse(user_dict,'organizations_url')
+    result['followers'] = robust_parse(user_dict,'followers')
+    result['public_repos'] = robust_parse(user_dict,'public_repos')
     
     return pd.Series(result)
+
+def robust_parse(_dict,_key):
+    '''
+    Function to avoid errors when parsing a dict with missing keys
+    Args:
+        _dict (dict) we want to extract a value from
+        _key (str) the value we want to extract
+    '''
+    if _key in _dict.keys():
+        return _dict[_key]
+    else:
+        return np.nan
+
+
+def create_user_df(user_lookup_df,data_path,creds,recollect=False,save_failures=True):
+    '''
+    Takes a repo - user lookup and collects user data.
+
+    Args:
+        user_lookup_df (pandas dataframe) is a dataframe with repos and users
+        recollect (boolean) if we want to check if we already collected the data
+        data_path (str) the directory with the data
+        save_failures (bool) if we want to save logins for request failures
+    '''
+    if recollect==False:
+        if os.path.exists(f"{data_path}/github_users.csv")==True:
+            #Get unique users
+            unique_users = [x for x in list(set(user_lookup_df['user'])) if pd.isnull(x)==False]
+            
+            #Get new users
+            #Previously collected data
+            user_df = pd.read_csv(f"{data_path}/github_users.csv")
+            
+            existing_users = set(user_df['login'])
+            new_users = [x for x in unique_users if x not in existing_users]
+            logger.info(f"{len(new_users)}")
+
+            #Collect the data
+            new_user_results = collect_user_data(new_users,creds)
+
+            #Parse the data and create a dataframe
+            new_user_df = pd.DataFrame([parse_user_result(x) for x in new_user_results[0]])
+
+            #Combine with previous users and save
+            user_df_2 = pd.concat([user_df,new_user_df])
+
+            if save_failures == True:
+                pd.DataFrame(new_user_results[1]).to_csv(f"{data_path}/new_users_failed.csv",index=False)
+
+            return(user_df_2)
+        else:
+            unique_users = [x for x in list(set(user_lookup_df['user'])) if pd.isnull(x)==False]
+            logger.info(f"{len(unique_users)}")
+
+            #Collect the data
+            user_results = collect_user_data(unique_users,creds)
+
+            #Parse the data and create a dataframe
+            user_df = pd.DataFrame([parse_user_result(x) for x in user_results[0]])
+
+            if save_failures == True:
+                pd.DataFrame(user_results[1]).to_csv(f"{data_path}/users_failed.csv",index=False)
+
+            #Save the df
+            return(user_df)
+    else:
+        unique_users = [x for x in list(set(user_lookup_df['user'])) if pd.isnull(x)==False]
+        logger.info(f"{len(unique_users)}")
+
+        #Collect the data
+        user_results = collect_user_data(unique_users,creds)
+
+        #Parse the data and create a dataframe
+        user_df = pd.DataFrame([parse_user_result(x) for x in user_results[0]])
+
+        if save_failures == True:
+            pd.DataFrame(user_results[1]).to_csv(f"{data_path}/users_failed.csv",index=False)
+
+        #Save the df
+        return(user_df)

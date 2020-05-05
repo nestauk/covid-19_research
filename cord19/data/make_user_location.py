@@ -5,6 +5,7 @@ import pandas_gbq
 from google.oauth2 import service_account
 import requests
 import logging
+import os
 
 import cord19
 project_dir = cord19.project_dir
@@ -19,53 +20,97 @@ def subset_users(user_list,values):
     '''
     subs_users = user_list[values[0]:values[1]]
     
-    subs_users_as_string = re.sub('\[|\]','',str(subs_users))
-    
+    subs_users_as_string = re.sub('\[|\]','',str(subs_users))    
     return subs_users_as_string
+
+def _query_gbq(user_login_list,_project_id='github-covid-analysis'):
+
+  sql = f"""
+      SELECT
+        id,
+        login,
+        company,
+        created_at,
+        country_code,
+        city,
+        long,
+        lat
+      FROM 
+        `ghtorrentmysql1906.MySQL1906.users`
+      WHERE 
+        login IN
+      """
+
+      #We will chunk our queries into 1000s
+  user_steps = list(np.arange(0,len(user_login_list),1000))
+  user_queries = chunks(user_steps)
+  user_steps.append(len(user_login_list))
+
+  #Create composed queries
+  composed_queries = [sql+f" ({subset_users(user_login_list,q)})" for q in user_queries]
+
+  #Run queries
+  df = pd.concat([pandas_gbq.read_gbq(q, 
+                  project_id=_project_id,
+                  credentials=creds) for q in composed_queries]).reset_index(drop=True)
+  
+  return df
 
 #Credentials
 creds = service_account.Credentials.from_service_account_file(
     f"{project_dir}/big_query_creds.json")
 
-#Read users
-users = pd.read_csv(f"{project_dir}/data/raw/github/github_users.csv")
+#project_id = '102376819866753956231'
 
-#Extract user logins
-user_login = [x.split('/')[-2] for x in users['repos_url']]
+def make_locations(recollect=False):
+  '''
+  Collects user locations from Google big query
 
-#Build the SQL query we want to use with google big query
-project_id = '102376819866753956231'
+  '''
+  #TOFIX - Need to additional changes here to deal with situations where the 
+  #Number of new queries is below 1000 ie we don't have an iterable
+  if recollect== False:
+    if os.path.exists(f"{project_dir}/data/raw/github/user_locations.csv")==True:
 
-#Note that this query is not complete - we will append the list of users at
-#the end using a template and the subset_users function
+      locs = pd.read_csv(f"{project_dir}/data/raw/github/user_locations.csv")
 
-sql = f"""
-SELECT
-  id,
-  login,
-  company,
-  created_at,
-  country_code,
-  city,
-  long,
-  lat
-FROM 
-  `ghtorrentmysql1906.MySQL1906.users`
-WHERE 
-  login IN
-"""
+      #Read users
+      users = pd.read_csv(f"{project_dir}/data/raw/github/github_users.csv")
 
-#We will chunk our queries into 1000s
-user_steps = list(np.arange(0,len(user_login),1000))
-user_queries = chunks(user_steps)
-user_steps.append(len(user_login))
+      #Extract user logins
+      new_user_login = [x for x in locs['login'] if x not in set(users['login'])]
 
-#Run the query
-df = pd.concat([pandas_gbq.read_gbq(sql+f" ({subset_users(user_login,q)})", 
-                project_id='github-covid-analysis',
-                credentials=creds) for q in user_queries]).reset_index(drop=True)
+      df = _query_gbq(new_user_login)
 
-logging.info(df.head())
+      logging.info(df.head())
 
-#Save the results
-df.to_csv(f"{project_dir}/data/raw/github/user_locations.csv",index=False)
+      #Concatenate with the previous results
+      df_2 = pd.concat([locs,df])
+      df_2.to_csv(f"{project_dir}/data/raw/github/user_locations.csv",index=False)
+    
+    else:
+      users = pd.read_csv(f"{project_dir}/data/raw/github/github_users.csv")
+
+      #Extract user logins
+      user_login = users['login']
+
+      df = _query_gbq(user_login)
+      logging.info(df.head())
+
+      #Save the results
+      df.to_csv(f"{project_dir}/data/raw/github/user_locations.csv",index=False)
+  else:
+    users = pd.read_csv(f"{project_dir}/data/raw/github/github_users.csv")
+
+    #Extract user logins
+    user_login = sorted([x for x in list(users['login']) if pd.isnull(x)==False])
+
+    df = _query_gbq(user_login)
+    logging.info(df.head())
+
+    #Save the results
+    df.to_csv(f"{project_dir}/data/raw/github/user_locations.csv",index=False)
+
+
+if __name__ == '__main__':
+    make_locations()
