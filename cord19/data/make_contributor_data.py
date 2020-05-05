@@ -39,7 +39,7 @@ username = os.environ.get('username')
 token = os.environ.get('token')
 creds = (username,token)
 
-def make_contributors(recollect=False):
+def make_contributors(recollect=True):
     '''
     Creates the contributor df.
 
@@ -80,9 +80,9 @@ def make_contributors(recollect=False):
     project_user_lookup.to_csv(f"{data_path}/github_repo_user_lookup.csv",index=False)
 
     #Uses the previously defined function
-    user_df = create_user_df(project_user_lookup,data_path,recollect)
+    user_df = create_user_df(project_user_lookup,data_path,creds,recollect)
         
-    user_df.to_csv(f"{data_path}/raw/github/github_users.csv",index=False)
+    user_df.to_csv(f"{data_path}/github_users.csv",index=False)
 
 
 if __name__ == '__main__':

@@ -44,7 +44,6 @@ with open(f"{project_dir}/model_config.yaml",'r') as infile:
 cov_terms = mod['github_queries']
 logger.info(cov_terms)
 
-
 def make_repos():
     '''
     Function to make the repos
@@ -81,7 +80,7 @@ def make_repos():
                                          'github_repos_first_pass',
                                          data_path)
 
-    final_df.to_csv(f'{data_path}/github_repos_first_pass.csv',index=False)
+    first_pass_results[0].to_csv(f'{data_path}/github_repos_first_pass.csv',index=False)
 
 if __name__=='__main__':
     make_repos()
