@@ -3,6 +3,7 @@ import string
 import gensim
 import nltk
 from nltk.corpus import stopwords
+from statsmodels.stats.proportion import proportions_ztest
 import numpy as np
 nltk.download('stopwords', quiet=True)
 nltk.download('punkt', quiet=True)
@@ -59,4 +60,21 @@ def clean_and_tokenize(text, remove_stops):
 
 
 def flatten_lists(l):
+    """Flattens nested lists."""
     return [item for sublist in l for item in sublist]
+
+
+def two_proportions_test(df, value=0, alternative='smaller'):
+    """Test for proportions based on normal (z) test.
+    
+    Args:
+        df (:obj:`pandas.DataFrame`): Dataframe used in the analysis.
+        value (int): See https://www.statsmodels.org/stable/generated/statsmodels.stats.proportion.proportions_ztest.html
+        alternative (str): See https://www.statsmodels.org/stable/generated/statsmodels.stats.proportion.proportions_ztest.html
+    Return:
+        (:obj:`tuple` of `float`): z-test and p-value.
+
+    """
+    successes = np.array(df[1])
+    observations = np.array(df.sum(axis=1))
+    return proportions_ztest(successes, observations, value, alternative=alternative)
