@@ -19,6 +19,7 @@ dependencies:
   - altair
   - sklearn
   - umap-learn
+  - statsmodels
   
   # Put any conda dependencies here
 
