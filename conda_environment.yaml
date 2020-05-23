@@ -2,6 +2,7 @@ name: cord19
 channels:
   - conda-forge
   - defaults
+  - plotly
 dependencies:
   - pip
   - python=3.6.5
@@ -12,6 +13,13 @@ dependencies:
   - jupyter
   - ipython
   - pandas-gbq
+  - plotly
+  - nltk
+  - gensim
+  - altair
+  - sklearn
+  - umap-learn
+  
   # Put any conda dependencies here
 
   - pip:
