@@ -29,7 +29,7 @@ def distance(df):
     """
     d = {}
     l = []
-    for (flag, val) in zip(["no_covid", "with_covid"], [0,1]):
+    for (flag, val) in zip(["no_covid", "with_covid"], [0, 1]):
         l.append(val)
         vectors = [v for v in df[df.is_Covid.isin(l)]["arr"].values]
 
