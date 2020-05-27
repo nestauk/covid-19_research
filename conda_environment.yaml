@@ -17,7 +17,7 @@ dependencies:
   - nltk
   - gensim
   - altair
-  - sklearn
+  - scikit-learn
   - umap-learn
   - statsmodels
   
