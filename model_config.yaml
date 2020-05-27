@@ -7,3 +7,21 @@ cord19_files:
   - https://ai2-semanticscholar-cord-19.s3-us-west-2.amazonaws.com/2020-03-13/biorxiv_medrxiv.tar.gz
   - https://ai2-semanticscholar-cord-19.s3-us-west-2.amazonaws.com/2020-03-13/all_sources_metadata_2020-03-13.csv
   - https://ai2-semanticscholar-cord-19.s3-us-west-2.amazonaws.com/2020-03-13/all_sources_metadata_2020-03-13.readme
+
+rxiv_columns: ['id', 'created', 'title', 'abstract', 'mag_id', 'citation_count', 'article_source', 'mag_authors']
+
+keywords:
+    covid_19: ['SARS-CoV-2', 'COVID-19', 'coronavirus']
+    ai: ['optimization_algorithm', 'convolutional_neural', 'automatic_detection', 'transfer_learning', 'semi_supervised', 'dnn', 'pre_trained', 'artificial_intelligence', 'natural_language', 'deep_learning', 'machine_learning', 'training_dataset', 'covid_net', 'classification', 'cnn', 'learning_based', 'deep_neural', 'neural_network', 'feature_extraction', 'deep_convolutional', 'supervised_learning', 'machine_learning_based', 'computational_intelligence', 'machine_intelligence']
+
+tfidf:
+    max_features: 120000
+    
+svd:
+    n_components: 500
+
+umap:
+   n_neighbors: 3
+   min_dist: .01
+   n_components: 3
+   metric: 'cosine'
