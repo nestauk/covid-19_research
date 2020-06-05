@@ -48,3 +48,11 @@ import matplotlib.pyplot as plt
 # project directory e.g. `/home/user/GIT/nesta`
 project_dir = cord19.project_dir
 data_path = f'{project_dir}/data'
+
+#Altair visualisation imports
+from dotenv import load_dotenv,find_dotenv
+from selenium import webdriver
+load_dotenv(find_dotenv())
+
+driver_path = os.getenv('chrome_driver_path')
+DRIVER = webdriver.Chrome(executable_path=driver_path)
